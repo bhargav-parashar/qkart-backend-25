@@ -4,14 +4,23 @@ const validator = require("validator");
 const config = require("../config/config");
 
 // TODO: CRIO_TASK_MODULE_UNDERSTANDING_BASICS - Complete userSchema, a Mongoose schema for "users" collection
-const userSchema = mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
     email: {
+      type: String,
+      required: true,
+      trim: true,
+      unique:true,
+      lowercase: true,
+      validate : {
+        validator: (v) => validator.isEmail(v),
+        message: (props) => `${props.value} is not a valid Email!`,
+      }
     },
     password: {
       type: String,
@@ -22,12 +31,18 @@ const userSchema = mongoose.Schema(
           );
         }
       },
+      required : true,
+      trim: true,
+      minLength : 8
     },
     walletMoney: {
+      type:Number,
+      required : true,
+      default : config.default_wallet_money
     },
     address: {
       type: String,
-      default: config.default_address,
+      default: config.default_address
     },
   },
   // Create createdAt and updatedAt fields automatically
@@ -43,6 +58,16 @@ const userSchema = mongoose.Schema(
  * @returns {Promise<boolean>}
  */
 userSchema.statics.isEmailTaken = async function (email) {
+
+  const userWithEmail = await this.findOne({
+    'email' : email
+  })
+
+  if(!userWithEmail){
+    return false;
+  }
+  return true;
+
 };
 
 
@@ -56,3 +81,5 @@ userSchema.statics.isEmailTaken = async function (email) {
 /**
  * @typedef User
  */
+const User = mongoose.model("User",userSchema);
+module.exports = {User};
