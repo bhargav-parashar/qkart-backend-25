@@ -52,7 +52,8 @@ const getUserById = (id) => User.findById(id);
     throw new ApiError(httpStatus.OK, "Email already taken");
   }
   // Create and return the new user
-  return User.create(payload)
+ const user = await User.create({...payload});
+ return user;
  };
  
 

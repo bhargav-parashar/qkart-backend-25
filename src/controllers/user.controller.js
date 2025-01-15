@@ -12,6 +12,9 @@ const { userService } = require("../services");
  *  - If data doesn't exist, throw an error using `ApiError` class
  *    - Status code should be "404 NOT FOUND"
  *    - Error message, "User not found"
+ *  - If the user whose token is provided and user whose data to be fetched don't match, throw `ApiError`
+ *    - Status code should be "403 FORBIDDEN"
+ *    - Error message, "User not found"
  *
  * 
  * Request url - <workspace-ip>:8082/v1/users/6010008e6c3477697e8eaba3
@@ -31,6 +34,7 @@ const { userService } = require("../services");
  *
  * Example response status codes:
  * HTTP 200 - If request successfully completes
+ * HTTP 403 - If request data doesn't match that of authenticated user
  * HTTP 404 - If user entity not found in DB
  * 
  * @returns {User | {address: String}}
@@ -39,6 +43,11 @@ const { userService } = require("../services");
 
 
  const getUser = catchAsync(async (req, res) => {
+
+  if(req.user.id !== req.params.userId){
+    throw new ApiError(httpStatus.FORBIDDEN, "Forbidden: Access denied");
+    return;
+  }
   
   const user = await userService.getUserById(req.params.userId);
   res.status(httpStatus.OK).json(user);
