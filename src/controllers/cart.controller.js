@@ -32,7 +32,9 @@ const { cartService } = require("../services");
  *
  */
 const getCart = catchAsync(async (req, res) => {
+
   const cart = await cartService.getCartByUser(req.user);
+
   res.send(cart);
 });
 
