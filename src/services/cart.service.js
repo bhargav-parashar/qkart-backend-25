@@ -247,9 +247,56 @@ const deleteProductFromCart = async (user, productId) => {
 };
 
 
+
+// TODO: CRIO_TASK_MODULE_TEST - Implement checkout function
+/**
+ * Checkout a users cart.
+ * On success, users cart must have no products.
+ *
+ * @param {User} user
+ * @returns {Promise}
+ * @throws {ApiError} when cart is invalid
+ */
+const checkout = async (user) => {
+
+ let cart = await Cart.findOne({email : user.email});
+
+  
+  if(cart == null){
+    throw new ApiError(httpStatus.NOT_FOUND, "User does not have a cart");
+  }
+  if(cart.cartItems.length === 0){
+    throw new ApiError(httpStatus.BAD_REQUEST,"Cart is empty");
+  }
+
+  let hasSetNonDefaultAddress = await user.hasSetNonDefaultAddress();
+  if(!hasSetNonDefaultAddress){
+    
+    throw new ApiError(httpStatus.BAD_REQUEST, "Address not set");
+  }
+
+  let total = 0;
+  for(let i = 0; i < cart.cartItems.length; i++){
+    total += cart.cartItems[i].product.cost *  cart.cartItems[i].quantity;
+  }
+  if(total > user.walletMoney){
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      "User has insufficient money to process"
+    )
+  }
+  user.walletMoney -= total;
+ 
+
+  cart.cartItems = [];
+  await user.save();
+  await cart.save();
+};
+
 module.exports = {
   getCartByUser,
   addProductToCart,
   updateProductInCart,
   deleteProductFromCart,
+  checkout
 };

@@ -17,4 +17,5 @@ connectDb();
 
 app.listen(port,()=>console.log(`Server listening at port ${port}`));
 
+let server;
 
